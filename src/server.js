@@ -15,6 +15,9 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 //And have url parse object here, indexed to urls to reach them
 const urlStruct = {
     "/style.css" : htmlHandler.getCSS,
+    "/": htmlHandler.getHomePage,
+    "/getUsers": responseHandler.getUsers,
+    "/addUser": responseHandler.addUser,
     other: responseHandler.notFound,
 }
 
