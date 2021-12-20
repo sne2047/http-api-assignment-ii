@@ -6,7 +6,108 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+    //function to handle xhr response properly
+    const handleResponse = (xhr, parseResponse) => {
+      //first we get the spot to put the stuff
+      const content = document.querySelector("#content");
+      const h1 = document.createElement('h1');
 
+      //then get the content-type header from the resonse, so we can know what type we have
+      const type = xhr.getResponseHeader('content-type');
+
+      //and, add the title based on the status code.
+      switch(xhr.status){
+        case 200://success
+          h1.textContent = 'Success';
+          break;
+        case 400://bad request
+          h1.textContent = 'Bad Request';
+          break;
+        case 401: //unauthorized
+          h1.textContent = 'Unauthorized';
+          break;
+        case 403://forbidden
+          h1.textContent = 'Forbidden';
+          break;
+        case 500://internal
+          h1.textContent = 'Internal';
+          break;
+        case 501: //not implemented
+          h1.textContent = 'Not Implemented';
+          break;
+        case 404: //not found
+          h1.textContent = 'Not Found';
+          break;
+        default: 
+          h1.textContent = "Status code unknown";
+          break;
+      }
+      
+      if(parseResponse){
+        //parse obj and display
+        //make p to hold our response data
+        const p = document.createElement('p');
+
+        //then, if JSON
+        if(type === 'application/json'){
+          //parse response text into a json object
+          const obj = JSON.parse(xhr.response);
+          //add json fields to html elements
+          p.textContent = `Message: ${obj.message}`;
+        }//otherise, xml
+        else if(type === 'text/xml'){
+          const message = xhr.responseXML.querySelector('message').textContent;
+          p.textContent = `Message: ${message}`;
+        }
+        content.appendChild(h1);
+        content.appendChild(p);
+      }
+      else{
+        //we got the head, only status code
+        content.appendChild(h1);
+      }
+    }
+
+    const requestUpdate = (e, form) => {
+      //get the url field first
+      const url = form.querySelector('#urlField').value;
+      //get the method thats selected
+      const method = form.querySelector('#methodSelect').value;
+
+      //create a new AJAX request (remember its async)
+      const xhr = new XMLHttpRequest();
+      //set up using the method and url selected
+      xhr.open(method, url);
+      //add accepted type
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      //if get or head request
+      if(method == 'get') {
+        xhr.onload = () => handleResponse(xhr, true);
+      }
+      else{
+        xhr.onload = () => handleResponse(xhr, false);
+      }
+
+      //send
+      xhr.send();
+
+      //cancel default
+      e.preventDefault();
+      //return false to prevent page redirection
+      return false;
+    };
+
+    const init = () => {
+      //grab form
+      const userForm = document.querySelector('#userForm');
+      //function to handle request
+      const getUsers = (e) => requestUpdate(e, userForm);
+      //add event listener
+      userForm.addEventListener('submit', getUsers);
+    };
+
+    window.onload = init;
   </script>
 </head>
 <body>
@@ -25,8 +126,8 @@
         <option value='/notReal'>/notReal</option>
       </select>
       <select id="methodSelect">
-        <option value="get">GET</option>
-        <option value="head">HEAD</option>
+        <option value="GET">GET</option>
+        <option value="HEAD">HEAD</option>
       </select>
       <input type="submit" value="Get User" />
     </form>

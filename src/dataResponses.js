@@ -107,7 +107,7 @@ const addUser = (request, response, params, type) => {
 
     if(users[name]){
         //if such a user already exists
-        user[name].age = params.age;
+        user[name].age = age;
         return respond(request, response, 204, "", type); 
     }
 
