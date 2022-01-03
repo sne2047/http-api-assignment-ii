@@ -93,7 +93,11 @@ let users = {};
 
 const getUsers = (request, response, params, type) => {
     //no clue how well this'll work but ehhhh
-    return respond(request, response, 200, dataFormat(type, users), type);
+    const responseJSON = {
+        users : users,
+        id : 'success',
+      }
+    return respond(request, response, 200, dataFormat("application/json", responseJSON), "application/json");
 }
 
 const addUser = (request, response, params, type) => {
@@ -102,21 +106,21 @@ const addUser = (request, response, params, type) => {
         return badRequest(request, response, params, type);
     }
 
-    let name = params.name;
-    let age = params.age;
+    let newName = params.name;
+    let newAge = params.age;
 
-    if(users[name]){
+    if(users[newName]){
         //if such a user already exists
-        user[name].age = age;
-        return respond(request, response, 204, "", type); 
+        users[newName].age = newAge;
+        return respond(request, response, 204, dataFormat(type, users[newName]), type); 
     }
 
     //else!
-    users[name] = {
-        age: age,
-        name: name
+    users[newName] = {
+        age: newAge,
+        name: newName
     };
-    respond(request, response, 201, dataFormat(type, users[name]), type);
+    respond(request, response, 201, dataFormat(type, users[newName]), type);
 }
 
 

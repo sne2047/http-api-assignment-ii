@@ -45,22 +45,39 @@
       
       if(parseResponse){
         //parse obj and display
+        const obj = JSON.parse(xhr.response);
+        content.appendChild(h1);
         //make p to hold our response data
         const p = document.createElement('p');
+        const userlist = document.createElement('p');
 
         //then, if JSON
         if(type === 'application/json'){
-          //parse response text into a json object
-          const obj = JSON.parse(xhr.response);
-          //add json fields to html elements
-          p.textContent = `Message: ${obj.message}`;
+          if(obj.message){
+            //parse response text into a json object
+            const obj = JSON.parse(xhr.response);
+            //add json fields to html elements
+            p.textContent = `Message: ${obj.message}`;
+            content.appendChild(p)
+          }
+          if(obj.users){
+            const users = JSON.stringify(obj.users);
+            userlist.textContent = users;
+            content.appendChild(userlist);
+          }
         }//otherise, xml
         else if(type === 'text/xml'){
-          const message = xhr.responseXML.querySelector('message').textContent;
-          p.textContent = `Message: ${message}`;
+          if(obj.message){
+            const message = xhr.responseXML.querySelector('message').textContent;
+            p.textContent = `Message: ${message}`;
+            content.appendChild(p);
+          }
+          if(obj.users){
+            const users = xhr.responseXML.querySelector('users').textContent;
+            userlist.textContent = users;
+            content.appendChild(userlist);
+          }
         }
-        content.appendChild(h1);
-        content.appendChild(p);
       }
       else{
         //we got the head, only status code
@@ -82,7 +99,7 @@
       xhr.setRequestHeader('Accept', 'application/json');
 
       //if get or head request
-      if(method == 'get') {
+      if(method == 'GET') {
         xhr.onload = () => handleResponse(xhr, true);
       }
       else{
@@ -98,13 +115,52 @@
       return false;
     };
 
+    const sendPost = (e, form) => {
+      //set up the action and method
+      const action = "/addUser";
+      const method = "POST";
+
+      //get the name and age fields
+      const nameField = form.querySelector('#nameField');
+      const ageField = form.querySelector('#ageField');
+      
+      //make a new Ajax request
+      const xhr = new XMLHttpRequest();
+      //set the method and url
+      xhr.open(action, method);
+
+      //set reqest type to form data
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      //set requested response type to json
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      //set response handler
+      xhr.onload = () => handleResponse(xhr);
+
+      //build our x-www-form-urlencoded format
+      //browser CAN do this automatically but then itd automatically change pages, which.
+      //Do not want.
+      const formData = `name=${nameField.value}&age=${ageField.value}`;
+
+      //send our request with the data included
+      xhr.send(formData);
+
+      //prevent the default action to send the form on its own
+      e.preventDefault();
+      //return false to prevent the browser from trying to swap pages
+      return false;
+    };
+
     const init = () => {
-      //grab form
+      //grab forms
       const userForm = document.querySelector('#userForm');
-      //function to handle request
+      const nameForm = document.querySelector('#nameForm');
+      //functions to handle request
       const getUsers = (e) => requestUpdate(e, userForm);
-      //add event listener
+      const sendForm = (e) => sendPost(e, nameForm);
+      //add event listeners
       userForm.addEventListener('submit', getUsers);
+      nameForm.addEventListener('submit', sendForm);
     };
 
     window.onload = init;
